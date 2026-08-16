@@ -7,12 +7,19 @@ public class ArchiveGameManager : MonoBehaviour
 {
     public static ArchiveGameManager Instance;
 
+    [Header("Lights")]
     public Light[] lights;
     public float dimSpeed = 1f;
 
-    public GameObject storyPopup;
-    public TMP_Text storyText;
+    [Header("EZPZ Buttons (drag in, text typed directly on each button's TMP)")]
+    public GameObject introButton;
+    public GameObject[] clueButtons;
+    public GameObject lockerUnlockedButton;
+    public GameObject diaryLetterButton;
+    public GameObject timeToLeaveButton;
+    public GameObject endingButton;
 
+    [Header("World Objects")]
     public GameObject lilaSilhouette;
     public GameObject exitTrigger;
     public AudioSource musicAudio;
@@ -30,7 +37,7 @@ public class ArchiveGameManager : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(ShowPopup("Night shift. Sort the archives. Don't lose anything.", 5f));
+        if (introButton != null) introButton.SetActive(true);
         RenderSettings.ambientIntensity = 0.3f;
     }
 
@@ -41,7 +48,10 @@ public class ArchiveGameManager : MonoBehaviour
         collected.Add(clueText);
         cluesCollected++;
 
-        StartCoroutine(ShowPopup(clueText, 3f));
+        if (cluesCollected - 1 < clueButtons.Length && clueButtons[cluesCollected - 1] != null)
+        {
+            clueButtons[cluesCollected - 1].SetActive(true);
+        }
 
         if (cluesCollected <= lights.Length)
         {
@@ -53,7 +63,7 @@ public class ArchiveGameManager : MonoBehaviour
         if (cluesCollected >= totalClues)
         {
             lockerUnlocked = true;
-            StartCoroutine(ShowPopup("...Click. The locker at the end has unlocked.", 3f));
+            if (lockerUnlockedButton != null) lockerUnlockedButton.SetActive(true);
         }
     }
 
@@ -61,7 +71,6 @@ public class ArchiveGameManager : MonoBehaviour
     {
         if (gameEnded) return;
         gameEnded = true;
-
         StartCoroutine(ClimaxSequence());
     }
 
@@ -72,17 +81,15 @@ public class ArchiveGameManager : MonoBehaviour
         foreach (Light l in lights) l.intensity = 0f;
         RenderSettings.ambientIntensity = 0.02f;
 
-        string diaryText = "17 Oct 1993\nI'm leaving. Don't look for me.\nLet the things hidden in these archives stay here forever.\n！！ Lila";
-        StartCoroutine(ShowPopup(diaryText, 5f));
+        if (diaryLetterButton != null) diaryLetterButton.SetActive(true);
 
         if (musicAudio != null) musicAudio.Play();
 
         yield return new WaitForSeconds(3f);
-
         lilaSilhouette.SetActive(true);
         yield return new WaitForSeconds(2f);
 
-        StartCoroutine(ShowPopup("...Time to leave.", 2f));
+        if (timeToLeaveButton != null) timeToLeaveButton.SetActive(true);
         yield return new WaitForSeconds(1f);
         exitTrigger.SetActive(true);
         Invoke("TriggerEnding", 5f);
@@ -109,18 +116,9 @@ public class ArchiveGameManager : MonoBehaviour
         Camera.main.backgroundColor = Color.black;
         Camera.main.clearFlags = CameraClearFlags.SolidColor;
 
-        storyText.text = "！！ The End ！！";
-        storyPopup.SetActive(true);
+        if (endingButton != null) endingButton.SetActive(true);
         yield return new WaitForSeconds(5f);
         Application.Quit();
-    }
-
-    IEnumerator ShowPopup(string text, float duration)
-    {
-        storyText.text = text;
-        storyPopup.SetActive(true);
-        yield return new WaitForSeconds(duration);
-        storyPopup.SetActive(false);
     }
 
     IEnumerator DimLight(Light light)
